@@ -1,0 +1,46 @@
+on:
+  push
+
+jobs:
+  job-with-mysql:
+    runs-on: ubuntu-latest
+    env:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: mysql
+      MYSQL_USER: user1
+      MYSQL_USER_PASSWORD: user1password
+      NEW_DATABASE: mysql
+    services:
+      db:
+        image: 'mysql:8.0'
+        ports:
+          - 3306:3306
+        env:
+          MYSQL_ROOT_PASSWORD: ${{env.MYSQL_ROOT_PASSWORD}}
+          MYSQL_DATABASE: ${{env.MYSQL_DATABASE}}
+          MYSQL_USER: ${{env.MYSQL_USER}}
+          MYSQL_USER_PASSWORD: ${{env.MYSQL_USER_PASSWORD}}
+        options: >-
+          --health-cmd "mysqladmin ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+        
+      - name: Show Docker Container
+        run: docker ps -a
+
+      - name: Wait for MySQL to be ready
+        run: |
+          echo "Waiting for MySQL to be ready..."
+          for i in {1..30}; do
+            mysqladmin --protocol=tcp -h localhost -P 3306 -u root -p ${{env.MYSQL_ROOT_PASSWORD}} ping &> output.txt && break
+            echo "MySQL is not ready yet... retrying in 2 seconds."
+            sleep 2
+          done
+
+      - name: Display the output file
+        run:
+          cat output.txt
