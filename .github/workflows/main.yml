@@ -43,4 +43,4 @@ jobs:
 
       - name: Display the output file
         run:
-          ps aux
+          ps aux | grep "mysqld"
