@@ -43,4 +43,4 @@ jobs:
 
       - name: Display the output file
         run:
-          cat output.txt
+          ps aux
